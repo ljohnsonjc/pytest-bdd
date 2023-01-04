@@ -28,6 +28,8 @@ STEP_PREFIXES = [
     ("But ", None),
 ]
 
+TYPES_WITH_DESCRIPTIONS = [types.FEATURE, types.SCENARIO, types.SCENARIO_OUTLINE]
+
 if typing.TYPE_CHECKING:
     from typing import Any, Iterable, Mapping, Match, Sequence
 
@@ -125,7 +127,8 @@ def parse_feature(basedir: str, filename: str, encoding: str = "utf-8") -> Featu
             multiline_step = False
         stripped_line = line.strip()
         clean_line = strip_comments(line)
-        if not clean_line and (not prev_mode or prev_mode not in types.FEATURE):
+        if not clean_line and (not prev_mode or prev_mode not in TYPES_WITH_DESCRIPTIONS):
+            # Blank lines are included in feature and scenario descriptions
             continue
         mode = get_step_type(clean_line) or mode
 
@@ -142,7 +145,9 @@ def parse_feature(basedir: str, filename: str, encoding: str = "utf-8") -> Featu
                 feature.line_number = line_number
                 feature.tags = get_tags(prev_line)
             elif prev_mode == types.FEATURE:
-                description.append(clean_line)
+                # Do not include comments in descriptions
+                if not stripped_line.startswith("#"):
+                    description.append(line)
             else:
                 raise exceptions.FeatureError(
                     "Multiple features are not allowed in a single feature file",
@@ -157,6 +162,16 @@ def parse_feature(basedir: str, filename: str, encoding: str = "utf-8") -> Featu
         keyword, parsed_line = parse_line(clean_line)
 
         if mode in [types.SCENARIO, types.SCENARIO_OUTLINE]:
+            # Lines between the scenario declaration
+            # and the scenario's first step line
+            # are considered part of the scenario description.
+            if scenario and not keyword:
+                # Do not include comments in descriptions
+                if stripped_line.startswith("#"):
+                    continue
+                scenario.add_description_line(line)
+                continue
+
             tags = get_tags(prev_line)
             scenario = ScenarioTemplate(
                 feature=feature,
@@ -185,7 +200,7 @@ def parse_feature(basedir: str, filename: str, encoding: str = "utf-8") -> Featu
                 scenario.add_step(step)
         prev_line = clean_line
 
-    feature.description = "\n".join(description).strip()
+    feature.description = "\n".join(description)
     return feature
 
 
@@ -215,10 +230,24 @@ class ScenarioTemplate:
     tags: set[str] = field(default_factory=set)
     examples: Examples | None = field(default_factory=lambda: Examples())
     _steps: list[Step] = field(init=False, default_factory=list)
+    _description_lines: list = field(init=False, default_factory=list)
 
     def add_step(self, step: Step) -> None:
         step.scenario = self
         self._steps.append(step)
+        
+    def add_description_line(self, description_line):
+        """Add a description line to the scenario.
+        :param str description_line:
+        """
+        self._description_lines.append(description_line)
+        
+    @property
+    def description(self):
+        """Get the scenario's description.
+        :return: The scenario description
+        """
+        return "\n".join(self._description_lines)
 
     @property
     def steps(self) -> list[Step]:
