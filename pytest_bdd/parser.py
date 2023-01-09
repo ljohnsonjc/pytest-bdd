@@ -25,6 +25,8 @@ STEP_PREFIXES = [
     ("But ", None),
 ]
 
+TYPES_WITH_DESCRIPTIONS = [types.FEATURE, types.SCENARIO, types.SCENARIO_OUTLINE]
+
 
 def split_line(line):
     """Split the given Examples line.
@@ -118,10 +120,10 @@ def parse_feature(basedir: str, filename: str, encoding: str = "utf-8") -> "Feat
             multiline_step = False
         stripped_line = line.strip()
         clean_line = strip_comments(line)
-        if not clean_line and (not prev_mode or prev_mode not in types.FEATURE):
+        if not clean_line and (not prev_mode or prev_mode not in TYPES_WITH_DESCRIPTIONS):
+            # Blank lines are included in feature and scenario descriptions
+            mode = get_step_type(clean_line) or mode
             continue
-        mode = get_step_type(clean_line) or mode
-
         allowed_prev_mode = (types.BACKGROUND, types.GIVEN, types.WHEN)
 
         if not scenario and prev_mode not in allowed_prev_mode and mode in types.STEP_TYPES:
@@ -135,7 +137,9 @@ def parse_feature(basedir: str, filename: str, encoding: str = "utf-8") -> "Feat
                 feature.line_number = line_number
                 feature.tags = get_tags(prev_line)
             elif prev_mode == types.FEATURE:
-                description.append(clean_line)
+                # Do not include comments in descriptions
+                if not stripped_line.startswith("#"):
+                    description.append(line)
             else:
                 raise exceptions.FeatureError(
                     "Multiple features are not allowed in a single feature file",
@@ -149,6 +153,15 @@ def parse_feature(basedir: str, filename: str, encoding: str = "utf-8") -> "Feat
         # Remove Feature, Given, When, Then, And
         keyword, parsed_line = parse_line(clean_line)
         if mode in [types.SCENARIO, types.SCENARIO_OUTLINE]:
+            # Lines between the scenario declaration
+            # and the scenario's first step line
+            # are considered part of the scenario description.
+            if scenario and not keyword:
+                # Do not include comments in descriptions
+                if stripped_line.startswith("#"):
+                    continue
+                scenario.add_description_line(line)
+                continue
             tags = get_tags(prev_line)
             feature.scenarios[parsed_line] = scenario = ScenarioTemplate(
                 feature=feature, name=parsed_line, line_number=line_number, tags=tags
@@ -194,7 +207,7 @@ def parse_feature(basedir: str, filename: str, encoding: str = "utf-8") -> "Feat
             target.add_step(step)
         prev_line = clean_line
 
-    feature.description = "\n".join(description).strip()
+    feature.description = "\n".join(description)
     return feature
 
 
@@ -239,6 +252,19 @@ class ScenarioTemplate:
         """
         step.scenario = self
         self._steps.append(step)
+
+    def add_description_line(self, description_line):
+        """Add a description line to the scenario.
+        :param str description_line:
+        """
+        self._description_lines.append(description_line)
+
+    @property
+    def description(self):
+        """Get the scenario's description.
+        :return: The scenario description
+        """
+        return u"\n".join(self._description_lines)
 
     @property
     def steps(self):
@@ -292,6 +318,7 @@ class Scenario:
         self.line_number = line_number
         self.tags = tags or set()
         self.failed = False
+        self._description_lines = []
 
 
 class Step:
