@@ -122,8 +122,8 @@ def parse_feature(basedir: str, filename: str, encoding: str = "utf-8") -> "Feat
         clean_line = strip_comments(line)
         if not clean_line and (not prev_mode or prev_mode not in TYPES_WITH_DESCRIPTIONS):
             # Blank lines are included in feature and scenario descriptions
-            mode = get_step_type(clean_line) or mode
             continue
+        mode = get_step_type(clean_line) or mode
         allowed_prev_mode = (types.BACKGROUND, types.GIVEN, types.WHEN)
 
         if not scenario and prev_mode not in allowed_prev_mode and mode in types.STEP_TYPES:
