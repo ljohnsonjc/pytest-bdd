@@ -183,7 +183,7 @@ def parse_feature(basedir: str, filename: str, encoding: str = "utf-8") -> Featu
             feature.scenarios[parsed_line] = scenario
         elif mode == types.BACKGROUND:
             feature.background = Background(feature=feature, line_number=line_number)
-        elif mode == types.EXAMPLES:
+        elif scenario and mode == types.EXAMPLES:
             mode = types.EXAMPLES_HEADERS
             scenario.examples.line_number = line_number
         elif mode == types.EXAMPLES_HEADERS:
