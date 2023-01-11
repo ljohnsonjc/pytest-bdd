@@ -195,7 +195,7 @@ def parse_feature(basedir: str, filename: str, encoding: str = "utf-8") -> Featu
             step = Step(name=parsed_line, type=mode, indent=line_indent, line_number=line_number, keyword=keyword)
             if feature.background and not scenario:
                 feature.background.add_step(step)
-            else:
+            elif scenario:
                 scenario = cast(ScenarioTemplate, scenario)
                 scenario.add_step(step)
         prev_line = clean_line
