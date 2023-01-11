@@ -244,6 +244,7 @@ class ScenarioTemplate:
         self.examples = Examples()
         self.line_number = line_number
         self.tags = tags or set()
+        self._description_lines = []
 
     def add_step(self, step):
         """Add step to the scenario.
