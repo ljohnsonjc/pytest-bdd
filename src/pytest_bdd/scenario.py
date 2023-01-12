@@ -46,6 +46,9 @@ def find_fixturedefs_for_step(step: Step, fixturemanager: FixtureManager, nodeid
     """Find the fixture defs that can parse a step."""
     # happens to be that _arg2fixturedefs is changed during the iteration so we use a copy
     fixture_def_by_name = list(fixturemanager._arg2fixturedefs.items())
+    print(fixturemanager.__dict__)
+    print("nodeid: " + nodeid)
+    print("fixture_def_by_name: " + fixture_def_by_name)
     for i, (fixturename, fixturedefs) in enumerate(fixture_def_by_name):
         for pos, fixturedef in enumerate(fixturedefs):
             step_func_context = getattr(fixturedef.func, "_pytest_bdd_step_context", None)
