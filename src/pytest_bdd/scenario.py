@@ -356,6 +356,9 @@ def scenarios(*feature_paths: str, **kwargs: Any) -> None:
     """
     caller_locals = get_caller_module_locals()
     caller_path = get_caller_module_path()
+    print("caller:")
+    print(caller_locals)
+    print(caller_path)
 
     features_base_dir = kwargs.get("features_base_dir")
     if features_base_dir is None:
