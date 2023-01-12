@@ -78,7 +78,7 @@ def inject_fixturedefs_for_step(step: Step, fixturemanager: FixtureManager, node
     bdd_name = get_step_fixture_name(step=step)
 
     fixturedefs = list(find_fixturedefs_for_step(step=step, fixturemanager=fixturemanager, nodeid=nodeid))
-
+    print(fixturedefs)
     # Sort the fixture definitions by their "path", so that the `bdd_name` fixture will
     # respect the fixture scope
 
@@ -112,9 +112,10 @@ def get_step_function(request, step: Step) -> StepFunctionContext | None:
     """
     __tracebackhide__ = True
     bdd_name = get_step_fixture_name(step=step)
-
+    print("bdd_name: " + bdd_name)
     with inject_fixturedefs_for_step(step=step, fixturemanager=request._fixturemanager, nodeid=request.node.nodeid):
         try:
+            print("request fixture value: " + request.getfixturevalue(bdd_name))
             return cast(StepFunctionContext, request.getfixturevalue(bdd_name))
         except pytest.FixtureLookupError:
             print(pytest.FixtureLookupError)
