@@ -85,7 +85,7 @@ def inject_fixturedefs_for_step(step: Step, fixturemanager: FixtureManager, node
     bdd_name = get_step_fixture_name(step=step)
 
     fixturedefs = list(find_fixturedefs_for_step(step=step, fixturemanager=fixturemanager, nodeid=nodeid))
-    print(fixturedefs)
+    print(len(fixturedefs))
     # Sort the fixture definitions by their "path", so that the `bdd_name` fixture will
     # respect the fixture scope
 
@@ -93,6 +93,8 @@ def inject_fixturedefs_for_step(step: Step, fixturemanager: FixtureManager, node
         return list(iterparentnodeids(fixture_def.baseid))
 
     fixturedefs.sort(key=lambda x: get_fixture_path(x))
+    for fixturedef in fixturedefs:
+        print(fixturedef.__dict__)
 
     if not fixturedefs:
         yield
