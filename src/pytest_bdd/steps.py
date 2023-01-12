@@ -166,6 +166,8 @@ def step(
             converters=converters,
             target_fixture=target_fixture,
         )
+        print("context: ")
+        print(context.__dict__)
 
         def step_function_marker() -> StepFunctionContext:
             return context
