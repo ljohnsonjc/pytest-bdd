@@ -52,7 +52,8 @@ def find_fixturedefs_for_step(step: Step, fixturemanager: FixtureManager, nodeid
     for i, (fixturename, fixturedefs) in enumerate(fixture_def_by_name):
         print("fixturename: " + fixturename)
         for pos, fixturedef in enumerate(fixturedefs):
-            print("fixturedef: " + fixturedef)
+            print("fixturedef:")
+            print(fixturedef.__dict__)
             step_func_context = getattr(fixturedef.func, "_pytest_bdd_step_context", None)
             print("step_func_context: " + step_func_context)
             if step_func_context is None:
