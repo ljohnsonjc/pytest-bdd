@@ -117,6 +117,7 @@ def get_step_function(request, step: Step) -> StepFunctionContext | None:
         try:
             return cast(StepFunctionContext, request.getfixturevalue(bdd_name))
         except pytest.FixtureLookupError:
+            print(pytest.FixtureLookupError)
             return None
 
 
@@ -177,9 +178,12 @@ def _execute_scenario(feature: Feature, scenario: Scenario, request: FixtureRequ
     """
     __tracebackhide__ = True
     request.config.hook.pytest_bdd_before_scenario(request=request, feature=feature, scenario=scenario)
-
+    print(request)
+    print(request.__dict__)
     try:
         for step in scenario.steps:
+            print(step)
+            print(step.__dict__)
             step_func_context = get_step_function(request=request, step=step)
             if step_func_context is None:
                 exc = exceptions.StepDefinitionNotFoundError(
