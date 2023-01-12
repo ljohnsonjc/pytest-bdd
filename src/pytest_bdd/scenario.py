@@ -189,6 +189,11 @@ def _execute_scenario(feature: Feature, scenario: Scenario, request: FixtureRequ
     request.config.hook.pytest_bdd_before_scenario(request=request, feature=feature, scenario=scenario)
     print(request)
     print(request.__dict__)
+    caller_locals = get_caller_module_locals()
+    caller_path = get_caller_module_path()
+    print("caller:")
+    print(caller_locals)
+    print(caller_path)
     try:
         for step in scenario.steps:
             print(step)
